@@ -5,6 +5,7 @@
 #define Sym(x) MSFindSymbol(NULL, x)
 __attribute__((constructor)) void InitHooks();
 
+#pragma mark Utilities
 /* definition of player abilities */
 struct Abilities {
 	bool invulnerable;
@@ -13,17 +14,33 @@ struct Abilities {
 	bool instabuild;
 };
 
+void *playerRef = NULL;
+bool IsEntityPlayer(void *entityRef)
+{
+	return (entityRef == playerRef);
+}
+
+#pragma mark Originals
 /* definition of original functions */
 namespace Originals 
 {
-	float (*Player_GetWalkingSpeedModifier)(void *self);
-	void (*Player_Hurt)(void *self, void *entity, int damage);
-	void (*Player_normalTick)(void *self);
-
-	void (*Mob_JumpFromGround)(void *self, float height);
-
-	bool (*Entity_IsInWater)(void *self);
-	bool (*Entity_IsInWaterOrRain)(void *self);
+	namespace Player 
+	{
+		float (*GetWalkingSpeedModifier)(void *self);
+		void (*Hurt)(void *self, void *entity, int damage);
+		void (*normalTick)(void *self);
+	}
+	namespace Mob
+	{
+		void (*JumpFromGround)(void *self, float height);
+		void (*ActuallyHurt)(void *self, int damage);
+	}
+	namespace Entity 
+	{
+		bool (*IsInWater)(void *self);
+		bool (*IsInWaterOrRain)(void *self);
+		bool (*IsUnderLiquid)(void *self, void *material);
+	}
 
 	float (*HatchetItem_GetDestroySpeed)(void *ItemInstance, void *tile);
 	float (*PickaxeItem_GetDestroySpeed)(void *ItemInstance, void *tile);
@@ -33,6 +50,7 @@ namespace Originals
 	float (*WeaponItem_GetDestroySpeed)(void *ItemInstance, void *tile);
 }
 
+#pragma mark Hooks
 /* our mod implementations */
 namespace Hooks 
 {
@@ -50,19 +68,20 @@ namespace Hooks
 			{
 				return;
 			}
-			return Originals::Player_Hurt(self, entity, damage);
+			return Originals::Player::Hurt(self, entity, damage);
 		}
 
 		void normalTick(void *self)
 		{
+			playerRef = self;
 			bool fly = horizonSettings["kFly"];
-			if(fly)
+			if (fly)
 			{
 				Abilities *dataPtr = (Abilities*)self;
 				Abilities *abilities = &dataPtr[0xC6C/sizeof(Abilities)];
 				abilities->mayfly = true;
 			}
-			return Originals::Player_normalTick(self);
+			return Originals::Player::normalTick(self);
 		}
 	}
 	namespace Mob
@@ -72,19 +91,42 @@ namespace Hooks
 			float *dataPtr = (float*)self;
 			dataPtr[0x4C/sizeof(float)] = horizonSettings["kJump"];
 		}
+
+		void ActuallyHurt(void *self, int damage)
+		{
+			bool onehit = horizonSettings["kOnehit"];
+			if (onehit)
+			{
+				damage = 99;
+			}
+			return Originals::Mob::ActuallyHurt(self, damage);
+		}
 	}
 	namespace Entity 
 	{
 		bool IsInWater(void *self)
 		{
 			bool enabled = horizonSettings["kWater"];
-			return (enabled == true) ? true : Originals::Entity_IsInWater(self);
+			return (enabled == true) ? true : Originals::Entity::IsInWater(self);
 		}
 
 		bool IsInWaterOrRain(void *self)
 		{
 			bool enabled = horizonSettings["kWater"];
-			return (enabled == true) ? true : Originals::Entity_IsInWaterOrRain(self);
+			return (enabled == true) ? true : Originals::Entity::IsInWaterOrRain(self);
+		}
+
+		bool IsUnderLiquid(void *self, void *material)
+		{
+			bool scuba = horizonSettings["kScuba"];
+			if(scuba)
+			{
+				if(IsEntityPlayer(self))
+				{
+					return false;
+				}
+			}
+			return Originals::Entity::IsUnderLiquid(self, material);
 		}
 	}
 	namespace Items
@@ -119,24 +161,20 @@ namespace Hooks
 void InitHooks()
 {
 	using namespace Hooks;
-	using namespace Originals;
 
-	Hook("__ZN6Player23getWalkingSpeedModifierEv", Player::GetWalkingSpeedModifier, Player_GetWalkingSpeedModifier);
-	Hook("__ZN6Player4hurtEP6Entityi", Player::Hurt, Player_Hurt);
-	Hook("__ZN11LocalPlayer10normalTickEv", Player::normalTick, Player_normalTick);
+	Hook("__ZN6Player23getWalkingSpeedModifierEv", Player::GetWalkingSpeedModifier, Originals::Player::GetWalkingSpeedModifier);
+	Hook("__ZN6Player4hurtEP6Entityi", Player::Hurt, Originals::Player::Hurt);
+	Hook("__ZN11LocalPlayer10normalTickEv", Player::normalTick, Originals::Player::normalTick);
 
-	Hook("__ZN3Mob14jumpFromGroundEv", Mob::JumpFromGround, Mob_JumpFromGround);
+	Hook("__ZN3Mob14jumpFromGroundEv", Mob::JumpFromGround, Originals::Mob::JumpFromGround);
+	Hook("__ZN3Mob12actuallyHurtEi", Mob::ActuallyHurt, Originals::Mob::ActuallyHurt);
 
-	Hook("__ZNK6Entity9isInWaterEv", Entity::IsInWater, Entity_IsInWater);
-	Hook("__ZNK6Entity9isInWaterEv", Entity::IsInWaterOrRain, Entity_IsInWaterOrRain);
+	Hook("__ZN6Entity13isUnderLiquidEPK8Material", Entity::IsUnderLiquid, Originals::Entity::IsUnderLiquid);
 
-	Hook("__ZN11HatchetItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::HatchetItem_GetDestroySpeed, HatchetItem_GetDestroySpeed);
-	Hook("__ZN11PickaxeItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::HatchetItem_GetDestroySpeed, HatchetItem_GetDestroySpeed);
-	Hook("__ZN4Item15getDestroySpeedEP12ItemInstanceP4Tile", Items::Item_GetDestroySpeed, Item_GetDestroySpeed);
-	Hook("__ZN10DiggerItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::DiggerItem_GetDestroySpeed, DiggerItem_GetDestroySpeed);
-	Hook("__ZN10ShearsItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::ShearsItem_GetDestroySpeed, ShearsItem_GetDestroySpeed);
-	Hook("__ZN10WeaponItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::WeaponItem_GetDestroySpeed, WeaponItem_GetDestroySpeed);
-
-	// Hook("__ZN12SurvivalMode13initAbilitiesER9Abilities", SurvivalMode::InitAbilities, SurvivalMode_InitAbilities);
-
+	Hook("__ZN11HatchetItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::HatchetItem_GetDestroySpeed, Originals::HatchetItem_GetDestroySpeed);
+	Hook("__ZN11PickaxeItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::HatchetItem_GetDestroySpeed, Originals::HatchetItem_GetDestroySpeed);
+	Hook("__ZN4Item15getDestroySpeedEP12ItemInstanceP4Tile", Items::Item_GetDestroySpeed, Originals::Item_GetDestroySpeed);
+	Hook("__ZN10DiggerItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::DiggerItem_GetDestroySpeed, Originals::DiggerItem_GetDestroySpeed);
+	Hook("__ZN10ShearsItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::ShearsItem_GetDestroySpeed, Originals::ShearsItem_GetDestroySpeed);
+	Hook("__ZN10WeaponItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::WeaponItem_GetDestroySpeed, Originals::WeaponItem_GetDestroySpeed);
 }
