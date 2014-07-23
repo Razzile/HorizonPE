@@ -1,10 +1,3 @@
-/*
-Jetpack Cheats
-By: Lawivido/Razzile
-Credit Due: AlphaMatter 
-File: Settings.h
-*/
-
 #ifndef __Settings__
 #define __Settings__
 

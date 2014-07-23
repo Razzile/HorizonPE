@@ -1,10 +1,3 @@
-/*
-Jetpack Cheats
-By: Lawivido/Razzile
-Credit Due: AlphaMatter 
-File: Settings.mm
-*/
-
 #include "Settings.h"
 
 Settings("/var/mobile/Library/Preferences/horizonpe.plist") horizonSettings;
