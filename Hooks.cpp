@@ -48,115 +48,144 @@ namespace Originals
 	float (*DiggerItem_GetDestroySpeed)(void *ItemInstance, void *tile);
 	float (*ShearsItem_GetDestroySpeed)(void *ItemInstance, void *tile);
 	float (*WeaponItem_GetDestroySpeed)(void *ItemInstance, void *tile);
+
+	namespace GameMode 
+	{
+		void (*DestroyBlock)(void *self, void *player, int xco, int yco, int zco, char c);
+	}
 }
 
 #pragma mark Hooks
 /* our mod implementations */
-namespace Hooks 
+namespace Hooks {
+
+namespace Player 
 {
-	namespace Player 
+	float GetWalkingSpeedModifier(void *self)
 	{
-		float GetWalkingSpeedModifier(void *self)
-		{
-			return horizonSettings["kSpeed"];
-		}
-
-		void Hurt(void *self, void *entity, int damage)
-		{
-			bool invulnerable = horizonSettings["kInvulnerable"];
-			if(invulnerable)
-			{
-				return;
-			}
-			return Originals::Player::Hurt(self, entity, damage);
-		}
-
-		void normalTick(void *self)
-		{
-			playerRef = self;
-			bool fly = horizonSettings["kFly"];
-			if (fly)
-			{
-				Abilities *dataPtr = (Abilities*)self;
-				Abilities *abilities = &dataPtr[0xC6C/sizeof(Abilities)];
-				abilities->mayfly = true;
-			}
-			return Originals::Player::normalTick(self);
-		}
+		return horizonSettings["kSpeed"];
 	}
-	namespace Mob
-	{
-		void JumpFromGround(void *self)
-		{
-			float *dataPtr = (float*)self;
-			dataPtr[0x4C/sizeof(float)] = horizonSettings["kJump"];
-		}
 
-		void ActuallyHurt(void *self, int damage)
+	void Hurt(void *self, void *entity, int damage)
+	{
+		bool invulnerable = horizonSettings["kInvulnerable"];
+		if(invulnerable)
 		{
-			bool onehit = horizonSettings["kOnehit"];
-			if (onehit)
-			{
-				damage = 99;
-			}
-			return Originals::Mob::ActuallyHurt(self, damage);
+			return;
 		}
+		return Originals::Player::Hurt(self, entity, damage);
 	}
-	namespace Entity 
-	{
-		bool IsInWater(void *self)
-		{
-			bool enabled = horizonSettings["kWater"];
-			return (enabled == true) ? true : Originals::Entity::IsInWater(self);
-		}
 
-		bool IsInWaterOrRain(void *self)
-		{
-			bool enabled = horizonSettings["kWater"];
-			return (enabled == true) ? true : Originals::Entity::IsInWaterOrRain(self);
-		}
-
-		bool IsUnderLiquid(void *self, void *material)
-		{
-			bool scuba = horizonSettings["kScuba"];
-			if(scuba)
-			{
-				if(IsEntityPlayer(self))
-				{
-					return false;
-				}
-			}
-			return Originals::Entity::IsUnderLiquid(self, material);
-		}
-	}
-	namespace Items
+	void normalTick(void *self)
 	{
-		float HatchetItem_GetDestroySpeed(void *ItemInstance, void *tile)
+		playerRef = self;
+		bool fly = horizonSettings["kFly"];
+		if (fly)
 		{
-			return horizonSettings["kDestroy"];
+			Abilities *dataPtr = (Abilities*)self;
+			Abilities *abilities = &dataPtr[0xC6C/sizeof(Abilities)];
+			abilities->mayfly = true;
 		}
-		float PickaxeItem_GetDestroySpeed(void *ItemInstance, void *tile)
-		{
-			return horizonSettings["kDestroy"];
-		}
-		float Item_GetDestroySpeed(void *ItemInstance, void *tile)
-		{
-			return horizonSettings["kDestroy"];
-		}
-		float DiggerItem_GetDestroySpeed(void *ItemInstance, void *tile)
-		{
-			return horizonSettings["kDestroy"];
-		}
-		float ShearsItem_GetDestroySpeed(void *ItemInstance, void *tile)
-		{
-			return horizonSettings["kDestroy"];
-		}
-		float WeaponItem_GetDestroySpeed(void *ItemInstance, void *tile)
-		{
-			return horizonSettings["kDestroy"];
-		}
+		return Originals::Player::normalTick(self);
 	}
 }
+namespace Mob
+{
+	void JumpFromGround(void *self)
+	{
+		float *dataPtr = (float*)self;
+		dataPtr[0x4C/sizeof(float)] = horizonSettings["kJump"];
+	}
+
+	void ActuallyHurt(void *self, int damage)
+	{
+		bool onehit = horizonSettings["kOnehit"];
+		if (onehit)
+		{
+			damage = 99;
+		}
+		return Originals::Mob::ActuallyHurt(self, damage);
+	}
+}
+namespace Entity 
+{
+	bool IsInWater(void *self)
+	{
+		bool enabled = horizonSettings["kWater"];
+		return (enabled == true) ? true : Originals::Entity::IsInWater(self);
+	}
+
+	bool IsInWaterOrRain(void *self)
+	{
+		bool enabled = horizonSettings["kWater"];
+		return (enabled == true) ? true : Originals::Entity::IsInWaterOrRain(self);
+	}
+
+	bool IsUnderLiquid(void *self, void *material)
+	{
+		bool scuba = horizonSettings["kScuba"];
+		if(scuba)
+		{
+			if(IsEntityPlayer(self))
+			{
+				return false;
+			}
+		}
+		return Originals::Entity::IsUnderLiquid(self, material);
+	}
+}
+namespace Items
+{
+	float HatchetItem_GetDestroySpeed(void *ItemInstance, void *tile)
+	{
+		return horizonSettings["kDestroy"];
+	}
+	float PickaxeItem_GetDestroySpeed(void *ItemInstance, void *tile)
+	{
+		return horizonSettings["kDestroy"];
+	}
+	float Item_GetDestroySpeed(void *ItemInstance, void *tile)
+	{
+		return horizonSettings["kDestroy"];
+	}
+	float DiggerItem_GetDestroySpeed(void *ItemInstance, void *tile)
+	{
+		return horizonSettings["kDestroy"];
+	}
+	float ShearsItem_GetDestroySpeed(void *ItemInstance, void *tile)
+	{
+		return horizonSettings["kDestroy"];
+	}
+	float WeaponItem_GetDestroySpeed(void *ItemInstance, void *tile)
+	{
+		return horizonSettings["kDestroy"];
+	}
+}
+namespace GameMode
+{
+	void DestroyBlock(void *self, void *player, int xco, int yco, int zco, char c)
+	{
+		bool nuker = horizonSettings["kNuker"];
+		int size = horizonSettings["kNukerSize"];
+		if(nuker)
+		{
+			for (int x = 0-size/2; x < size/2; x++)
+			{
+				for (int y = 0-size/2; y < size/2; y++)	
+				{
+					for (int z = 0-size/2; z < size/2; z++)
+					{
+						Originals::GameMode::DestroyBlock(self, player, xco+x, yco+y, zco+z, c);
+						Originals::GameMode::DestroyBlock(self, player, xco+x, yco-y, zco+z, c);
+					}
+				}
+			}
+		}
+		return Originals::GameMode::DestroyBlock(self, player, xco, yco, zco, c);
+	}
+}
+
+} /* END HOOKS */
 
 void InitHooks()
 {
@@ -177,4 +206,6 @@ void InitHooks()
 	Hook("__ZN10DiggerItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::DiggerItem_GetDestroySpeed, Originals::DiggerItem_GetDestroySpeed);
 	Hook("__ZN10ShearsItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::ShearsItem_GetDestroySpeed, Originals::ShearsItem_GetDestroySpeed);
 	Hook("__ZN10WeaponItem15getDestroySpeedEP12ItemInstanceP4Tile", Items::WeaponItem_GetDestroySpeed, Originals::WeaponItem_GetDestroySpeed);
+
+	Hook("__ZN8GameMode12destroyBlockEP6Playeriiia", GameMode::DestroyBlock, Originals::GameMode::DestroyBlock);
 }
