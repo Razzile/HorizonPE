@@ -3,6 +3,7 @@
 
 #define Hook(x,y,z) MSHookFunction(MSFindSymbol(NULL, x), (void*)y, (void**)&z)
 #define Sym(x) MSFindSymbol(NULL, x)
+
 __attribute__((constructor)) void InitHooks();
 
 #pragma mark Utilities
@@ -82,6 +83,7 @@ namespace Player
 		bool fly = horizonSettings["kFly"];
 		if (fly)
 		{
+			/* The players Abilites struct is located 0xC6C bytes from the main player stack */
 			Abilities *dataPtr = (Abilities*)self;
 			Abilities *abilities = &dataPtr[0xC6C/sizeof(Abilities)];
 			abilities->mayfly = true;
@@ -93,6 +95,9 @@ namespace Mob
 {
 	void JumpFromGround(void *self)
 	{
+		/* jump height is located 0x4C bytes up from Mob stack */
+		/* see this picture to see what I mean */
+		/* http://i.imgur.com/QeR9vPU.png */
 		float *dataPtr = (float*)self;
 		dataPtr[0x4C/sizeof(float)] = horizonSettings["kJump"];
 	}
