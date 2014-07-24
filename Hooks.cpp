@@ -1,3 +1,10 @@
+/*                   __  __ 
+ *|__| _  _._  _  _ |__)|_  
+ *|  |(_)| |/_(_)| )|   |__ 
+ *                       
+ * File: Hooks.cpp
+ * Created by Razzile & AlphaMATTER
+ */
 #include <substrate.h>
 #include "Settings.h"
 

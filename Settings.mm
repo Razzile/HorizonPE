@@ -1,3 +1,10 @@
+/*                   __  __ 
+ *|__| _  _._  _  _ |__)|_  
+ *|  |(_)| |/_(_)| )|   |__ 
+ *                       
+ * File: Settings.mm
+ * Created by Razzile & AlphaMATTER
+ */
 #include "Settings.h"
 
 Settings("/var/mobile/Library/Preferences/horizonpe.plist") horizonSettings;

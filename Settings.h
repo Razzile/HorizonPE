@@ -1,3 +1,10 @@
+/*                   __  __ 
+ *|__| _  _._  _  _ |__)|_  
+ *|  |(_)| |/_(_)| )|   |__ 
+ *                       
+ * File: Settings.h
+ * Created by Razzile & AlphaMATTER
+ */
 #ifndef __Settings__
 #define __Settings__
 
