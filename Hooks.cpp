@@ -124,13 +124,13 @@ namespace Entity
 	bool IsInWater(void *self)
 	{
 		bool enabled = horizonSettings["kWater"];
-		return (enabled == true) ? true : Originals::Entity::IsInWater(self);
+		return (enabled) ? true : Originals::Entity::IsInWater(self);
 	}
 
 	bool IsInWaterOrRain(void *self)
 	{
 		bool enabled = horizonSettings["kWater"];
-		return (enabled == true) ? true : Originals::Entity::IsInWaterOrRain(self);
+		return (enabled) ? true : Originals::Entity::IsInWaterOrRain(self);
 	}
 
 	bool IsUnderLiquid(void *self, void *material)
