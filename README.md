@@ -7,6 +7,7 @@ Status
 ======
 
 Currently, HorizonPE is in early development. While a few of the mods are done, there is still a long way to go. Including creating the mod menu to appear in-game.
+Update: Due to me having much too many projects at once, HorizonPE is currently in a paused state of development :c
 
 Contribution
 ============
