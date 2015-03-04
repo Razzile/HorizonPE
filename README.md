@@ -6,8 +6,7 @@ HorizonPE is an in-development mod menu for Minecraft: Pocket Edition. It is not
 Status
 ======
 
-Currently, HorizonPE is in early development. While a few of the mods are done, there is still a long way to go. Including creating the mod menu to appear in-game.
-Update: Due to me having much too many projects at once, HorizonPE is currently in a paused state of development :c
+Currently, HorizonPE is on hold as I haven't had time to work on it recently. This project should pick up again in the summer
 
 Contribution
 ============
